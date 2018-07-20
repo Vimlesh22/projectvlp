@@ -48,7 +48,13 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "companyLearner": {
+      "type": "belongsTo",
+      "model": "company",
+      "foreignKey": "companyId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

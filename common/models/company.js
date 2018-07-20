@@ -38,20 +38,27 @@ module.exports = function(Company) {
     cb(null,weeklyOff);
   };
 
-   Company.update = function (companyId,cb) {
-     Company.findById(companyId,function(err,doc){
-       try{
-             if(err) throw err;
-             if(doc.length < 1){
-               return cb(null,null)
-             }
-            console.log(doc);
-            cb(null,doc);
-       }catch(e){
-         console.error(e);
-       }
-     });
-};
+
+  Company.updateCompany = function(companyId,cb) {
+    var Scheduler = app.models.scheduler;
+    Company.find({ where : {_id : companyId }},function(err,doc){
+           try{
+                 if(err) throw err;
+                 if(doc.length < 1){
+                   return cb(null,null)
+                 }
+                 Scheduler.find(function(err,result){
+                   if(err) throw err;
+                   console.log(result);
+                   console.log(doc);
+                   cb(null,result);
+                 });
+
+           }catch(e){
+             console.error(e);
+           }
+         });
+  }
 
   Company.addCompany = function(companyObject,cb) {
     var startDate = companyObject.startDate;
@@ -82,18 +89,22 @@ module.exports = function(Company) {
 
 
 
-  Company.SchedulRunner = function(companyId){
-    var Learner = app.models.Learner;
-      console.log('Hello Vimlesh....!!! Checking MQTT');
-      Learner.find({ filter: { where: { companyId : companyId } } },function(err,doc) {
-        for(var i in doc) {
-          console.log(doc[i]);
-          clientMqtt.publish('learner/'+companyId,'Your machine has been started');
-        }
-        console.log(doc);
-      });
-  }
-  // Company.SchedulRunner("5b50878f8b03c9677a193e9a");
+  // Company.SchedulRunner = function(companyId){
+  //   var Learner = app.models.Learner;
+  //     console.log('Hello Vimlesh....!!! Checking MQTT');
+  //     Learner.find({ where: { companyId : companyId }  },function(err,doc) {
+  //       // for(var i in doc) {
+  //       //   console.log(doc[i]);
+  //       //   clientMqtt.publish('learner/'+companyId,'Your machine has been started');
+  //       // }
+  //       console.log(doc);
+  //     });
+  // }
+  // Company.SchedulRunner('5b509279dd0b286de873f445');
+
+
+
+
   Company.observe('after save', function(ctx, next) {
     var Scheduler = app.models.Scheduler;
     // var email = ctx.instance.email;
@@ -114,7 +125,18 @@ module.exports = function(Company) {
     rule.hour = startHour;
     rule.minute = startMinute;
     var job = schedule.scheduleJob(rule, function(){
-      Company.SchedulRunner(ctx.instance.id);
+      var Learner = app.models.Learner;
+      Learner.find({where : {companyId : ctx.instance.id}},function(err,doc){
+        try{
+          if(err) throw err;
+          for(var i in doc) {
+            console.log(doc[i]);
+            clientMqtt.publish('learner/'+companyId,'Your machine has been started');
+          }
+        }catch(e){
+          console.log(e);
+        }
+      });
     });
     console.log("job:",typeof job, JSON.stringify(job));
     Scheduler.create([{
@@ -196,9 +218,9 @@ module.exports = function(Company) {
       }
    });
 
-   Company.remoteMethod('update',{
+   Company.remoteMethod('updateCompany',{
      http : {
-        path : '/update',
+        path : '/updateCompany',
         verb : 'post',
         status : 200
       },
@@ -208,8 +230,7 @@ module.exports = function(Company) {
       },
       accepts : {
         arg: 'companyId',
-        type: 'object',
-        http : { source : 'body'}
+        type : 'string'
        }
    });
 
