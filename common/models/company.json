@@ -1,0 +1,71 @@
+{
+  "name": "company",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "shortName": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "string",
+      "default": "kumarvimlesh007@gmail.com"
+    },
+    "teckStack": {
+      "type": "string",
+      "default": ""
+    },
+    "startDate": {
+      "type": "date",
+      "format": "YYYY-MM-DD"
+    },
+    "startTime": {
+      "type": "string",
+      "required": true,
+      "dataType": "timestamp"
+    },
+    "endTime": {
+      "type": "string",
+      "required": true,
+      "dataType": "timestamp"
+    },
+    "batchName": {
+      "type": "string",
+      "default": ""
+    },
+    "isDeleted": {
+      "type": "boolean",
+      "default": false
+    },
+    "weeklyOff": {
+      "type": "array",
+      "required": true,
+      "enum": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Even Saturday",
+        "Odd Saturday",
+        "Saturday",
+        "Sunday"
+      ],
+      "default": [
+        "Saturday",
+        "Sunday"
+      ]
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
