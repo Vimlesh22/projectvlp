@@ -47,13 +47,12 @@ module.exports = function(Company) {
                  if(doc.length < 1){
                    return cb(null,null)
                  }
-                 Scheduler.find(function(err,result){
+                 Scheduler.find({ where : { companyId : doc[0].id }},function(err,result){
                    if(err) throw err;
-                   console.log(result);
-                   console.log(doc);
+                   var  jobObject = result[0];
+                   console.log(JSON.stringify(jobObject));
                    cb(null,result);
                  });
-
            }catch(e){
              console.error(e);
            }
@@ -131,17 +130,18 @@ module.exports = function(Company) {
           if(err) throw err;
           for(var i in doc) {
             console.log(doc[i]);
-            clientMqtt.publish('learner/'+companyId,'Your machine has been started');
+            clientMqtt.publish('learner/'+ctx.instance.id,'Your machine has been started');
           }
         }catch(e){
           console.log(e);
         }
       });
     });
-    console.log("job:",typeof job, JSON.stringify(job));
+    var variable = JSON.stringify(job);
+    // console.log("job:",typeof variable,variable);
     Scheduler.create([{
       companyId : ctx.instance.id,
-      j : job
+      j : variable
     }],function(err,done){
       console.log('scheduler saved', done);
     })

@@ -16,7 +16,13 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "scheduler" : {
+      "type" : "belongsTo",
+      "model" : "company",
+      "foreignKey" : "companyId"
+    }
+  },
   "acls": [],
   "methods": {}
 }
