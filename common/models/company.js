@@ -16,11 +16,13 @@ var clientMqtt = new Client({
   port: 1883
 }, Adapter);
 
+clientMqtt.publish("/hello","mqtt conected");
+clientMqtt.subscribe("/hello");
 
 module.exports = function(Company) {
   var app = require('../../server/server.js');
   var Learner = app.models.Learner;
-  console.log("lear",Learner)
+  // console.log("lear",Learner);
   helper(Company,['upsert']);
   client.on('connect', function() {
     console.log('redis server connected');
@@ -49,8 +51,8 @@ module.exports = function(Company) {
                  }
                  Scheduler.find({ where : { companyId : doc[0].id }},function(err,result){
                    if(err) throw err;
-                   var  jobObject = result[0];
-                   console.log(JSON.stringify(jobObject));
+                   var  jobObject = JSON.parse(result[0]);
+                   console.log(jobObject.j.cancel());
                    cb(null,result);
                  });
            }catch(e){
@@ -112,7 +114,7 @@ module.exports = function(Company) {
     //   console.log('Sending email');
     //   emailService.emailService(email);
     // });
-    console.log(ctx.instance);
+    // console.log(ctx.instance);
     if(ctx.instance.isDeleted == false && ctx.isNewInstance == true ) {
     var startTime = ctx.instance.startTime.split(/:| /);
     var startHour = startTime[0];
@@ -130,15 +132,16 @@ module.exports = function(Company) {
           if(err) throw err;
           for(var i in doc) {
             console.log(doc[i]);
-            clientMqtt.publish('learner/'+ctx.instance.id,'Your machine has been started');
           }
+          clientMqtt.publish('learner/'+ctx.instance.id,'Your machine has been started');
+          // clientMqtt.subscribe('learner/'+ctx.instance.id);
         }catch(e){
           console.log(e);
         }
       });
     });
-    var variable = JSON.stringify(job);
-    // console.log("job:",typeof variable,variable);
+    var variable = job; //JSON.stringify(job);
+    console.log("job:", typeof variable,variable);
     Scheduler.create([{
       companyId : ctx.instance.id,
       j : variable
