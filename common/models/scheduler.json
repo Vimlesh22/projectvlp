@@ -17,10 +17,10 @@
   },
   "validations": [],
   "relations": {
-    "scheduler" : {
-      "type" : "belongsTo",
-      "model" : "company",
-      "foreignKey" : "companyId"
+    "scheduler": {
+      "type": "belongsTo",
+      "model": "company",
+      "foreignKey": "companyId"
     }
   },
   "acls": [],

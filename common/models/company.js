@@ -4,6 +4,29 @@ var EventEmitter = require('events');
 var emailService = require('../service/emailService');
 var schedule = require('node-schedule');
 var redis = require('redis');
+const elasticSearch = require('elasticsearch');
+const esClient = new elasticSearch.Client({
+  host : 'localhost:9200',
+  log : 'trace'
+});
+
+ //    esClient.ping({
+ //    requestTimeout: 30000,
+ //    }, function (error) {
+ //    if (error) {
+ //      console.error('elasticsearch cluster is down!');
+ //    } else {
+ //      console.log('All is well');
+ //    }
+ //  });
+ // }
+
+
+
+
+//3)searching document by firstName
+
+
 
 var client = redis.createClient();
 // var mqtt = require('mqtt');
@@ -39,6 +62,78 @@ module.exports = function(Company) {
     }
     cb(null,weeklyOff);
   };
+
+  Company.createElasticIndex = function(index,cb) {
+    //1)creating index
+    esClient.indices.create({
+      index : index
+    },function(error,resp,status){
+      if(error){
+        cb(error);
+      }
+      else{
+        var result = {
+          status : status,
+          response : resp
+        }
+        cb(null,result);
+      }
+    });
+
+  }
+
+  Company.insertAtIndex = function(insertObject,cb) {
+    //2)adding document to index
+    esClient.index({
+      index : insertObject.index,
+      id : insertObject.id,
+      type : insertObject.type,
+      body : {
+        "firstName" : insertObject.body.firstName,
+        "lastName": insertObject.body.lastName,
+        "techStack" : insertObject.body.techStack,
+        "duration" : insertObject.body.duration,
+      }
+    },function(error,res,status) {
+      if(error){
+        cb(error);
+      }
+      else {
+        var result = {
+          status : status,
+          response : res
+        }
+        cb(null,result);
+      }
+    });
+  }
+
+  Company.searchFromElastic = function (object,cb) {
+    console.log(object);
+    esClient.search({
+      index : object.index,
+      type : object.type,
+      body : {
+        query : {
+          match : {
+            firstName : object.firstName
+          }
+        }
+      }
+    },function (error,response,status) {
+      if(error){
+        cb(error);
+      }else {
+        var result = {
+          status : status,
+          response :response.hits.hits
+        }
+        cb(null,result);
+      }
+    });
+
+
+  }
 
 
   Company.updateCompany = function(companyId,cb) {
@@ -209,6 +304,64 @@ module.exports = function(Company) {
      });
    }
 
+   Company.remoteMethod('createElasticIndex',{
+     http : {
+       path : '/index',
+       verb : 'post',
+       status : 200
+     },
+     returns : {
+       arg : 'result',
+       root : true
+     },
+     accepts : {
+       arg : 'index',
+       type : 'string'
+     }
+   });
+
+   Company.remoteMethod('searchFromElastic',{
+     http : {
+       path : '/searchFromElastic',
+       verb : 'post',
+       source : 'body',
+       status : 200
+     },
+     returns : {
+       arg : 'result',
+       root : true
+     },
+     accepts : {
+       arg : 'object',
+       type : 'object',
+       http : {
+         source : 'body'
+       }
+     }
+   })
+
+   Company.remoteMethod('insertAtIndex',{
+     http : {
+       path : '/insertAtIndex',
+       verb : 'post',
+       source : 'body',
+       status : 200
+     },
+     returns : {
+       arg : 'result',
+       root : true
+     },
+     accepts : {
+       arg : 'object',
+       type : 'object',
+       http : {
+         source : 'body'
+       }
+     }
+   })
+
+
+
    Company.remoteMethod('findAllCompanies',{
      http : {
         path : '/findAllCompanies',
@@ -268,6 +421,7 @@ module.exports = function(Company) {
        root : true
      }
   });
+
    Company.remoteMethod('softDelete',{
      http : {
         path : '/delete',

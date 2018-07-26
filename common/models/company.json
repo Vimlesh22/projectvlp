@@ -67,16 +67,16 @@
   },
   "validations": [],
   "relations": {
-     "company": {
-     "type": "hasMany",
-     "model": "learner",
-     "foreignKey": ""
-   },
-   "companyScheduler" : {
-     "type" : "hasMany",
-     "model" : "scheduler",
-     "foreignKey" : "_id"
-   }
+    "company": {
+      "type": "hasMany",
+      "model": "learner",
+      "foreignKey": ""
+    },
+    "companyScheduler": {
+      "type": "hasMany",
+      "model": "scheduler",
+      "foreignKey": "_id"
+    }
   },
   "acls": [],
   "methods": {}
